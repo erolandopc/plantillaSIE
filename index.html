@@ -114,7 +114,7 @@
                   <h3 class="box-title">Estudiantes</h3>                 
                   <div class="box-tools pull-rightt">
                     
-                    <button type="button" class="btn btn-success" 
+                    <button id="btnAgregar" type="button" class="btn btn-success" 
                       data-toggle="tooltip" title="Agregar registro">
                         <i class="fa fa-plus"></i></button>
                   </div>
@@ -130,6 +130,8 @@
                       <th style="width: 10%" class="text-center">Acción</th>
                     </tr>
                   </table>
+                  <div id="divCargando"></div>
+                  
                 </div>
             </div>
 
@@ -161,6 +163,56 @@
   </footer>
 
   
+
+  <div id="mdl" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+
+        <input id="accion" type="hidden" />
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 id="h4Titulo" class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+          <div class="form-horizontal">
+              <div class="form-group">
+                  <label for="txtCodigo" class="col-xs-2">C&oacute;digo:</label>
+                  <div class="col-xs-10">
+                    <input id="txtCodigo" type="txtCodigo" class="form-control" />
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="txtNombres" class="col-xs-2">C&oacute;digo:</label>
+                  <div class="col-xs-10">
+                    <input id="txtNombres" type="txtNombres" class="form-control" />
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="txtApellidos" class="col-xs-2">Apellidos:</label>
+                  <div class="col-xs-10">
+                    <input id="txtApellidos" type="txtApellidos" class="form-control" />
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="txtNota" class="col-xs-2">Nota:</label>
+                  <div class="col-xs-10">
+                    <input id="txtNota" type="txtNota" class="form-control" />
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+        <button id="btnGuardar" type="button" class="btn btn-primary">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
   
 </div>
 <!-- ./wrapper -->
@@ -176,7 +228,143 @@
 <!-- AdminLTE App -->
 <script src="dist/js/app.min.js"></script>
 
+  <script type="text/javascript">
+    $(document).ready(function(){
 
+          
+
+            
+          
+
+          cargarDatos();
+
+
+          $("#btnAgregar").click(function(){
+
+            $("#h4Titulo").html("Agregando registro:");
+
+            $("#txtCodigo").val("");
+            $("#txtNombres").val("");
+            $("#txtApellidos").val("");
+            $("#txtNota").val("");
+
+            $("#accion").val("A");
+
+            $("#mdl").modal("show");
+
+          });
+
+
+          $("#btnGuardar").click(function(){
+
+            var id = $("#txtCodigo").val();
+
+            if(  $("#accion").val() == "E")           
+            {
+                $("#tr" + id + " .Nombres").html( $("#txtNombres").val());
+                $("#tr" + id + " .Apellidos").html( $("#txtApellidos").val());
+                $("#tr" + id + " .Nota").html( $("#txtNota").val());
+            }
+
+            $("#mdl").modal("hide");
+
+          });
+
+
+      });
+
+
+    
+
+    function cargarDatos()
+    {
+
+       $.ajax({
+            url: 'data/estudiantes.json',
+            type: 'POST',
+            dataType: 'json',
+            data: {},
+            beforeSend: function() {
+                $("#tbl").hide();
+                $("#divCargando").html("Cargando datos...");
+            },
+            success: function(data) {
+              
+                $.each(data, function(i,v){
+
+                    $("#tbl").append(   $("<tr>").attr("id","tr" + v.Codigo));
+                    $("#tbl tr:last").append( $("<td>").html(v.Codigo).addClass("Codigo") );
+                    $("#tbl tr:last").append( $("<td>").html(v.Nombres).addClass("Nombres") );
+                    $("#tbl tr:last").append( $("<td>").html(v.Apellidos).addClass("Apellidos") );
+                    $("#tbl tr:last").append( $("<td>").html(v.Nota).addClass("Nota") );
+                    $("#tbl tr:last").append(  $("<td>") );
+
+                    var btnEditar = $("<span>").attr({
+                                                "id": "btnEditar" + v.Codigo + "",
+                                                "class":"btn btn-warning btnEditar"
+
+                                              })
+                                              .html( $("<i>").addClass("fa fa-edit") )
+                                              ;
+
+                    var btnEliminar = $("<span>").attr({
+                                                "id": "btnEliminar" + v.Codigo + "",
+                                                "class":"btn btn-danger btnEliminar"
+
+                                              })
+                                              .html( $("<i>").addClass("fa fa-remove") )
+                                              ;
+
+
+                    $("#tbl td:last").append(btnEditar);
+                    $("#tbl td:last").append(btnEliminar);
+
+                });
+
+                $("#tbl").show();
+                $("#divCargando").hide();
+
+
+                
+                $(".btnEditar").click(function(){
+                    var id = $(this)
+                              .attr("id")
+                              .replace("btnEditar", "")
+                              ;
+                    //alert("Editando: "  + id);
+
+                    var id = "#tr" + id;
+                    
+                    $("#h4Titulo").html("Editando registro:");
+
+                    $("#txtCodigo").val( $(id + " .Codigo").html());
+                    $("#txtNombres").val( $(id + " .Nombres").html());
+                    $("#txtApellidos").val( $(id + " .Apellidos").html());
+                    $("#txtNota").val( $(id + " .Nota").html());
+
+                    $("#accion").val("E");
+                    $("#mdl").modal("show");
+
+                });
+
+                $(".btnEliminar").click(function(){
+                    var id = $(this)
+                              .attr("id")
+                              .replace("btnEliminar", "")
+                              ;
+                    //alert("Editando: "  + id);
+                    $("#tr" + id).remove();
+                });
+
+
+
+            },
+            error: function(xhr, textStatus, errorThrown) {
+              
+            }
+          });
+    }
+  </script>
 
 </body>
 </html>
